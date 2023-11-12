@@ -4,9 +4,8 @@ import { ThemeProvider } from "./context/ThemeProvider";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import SideMenu from "./components/SideMenu";
-import Script from "next/script";
-import Player from "./components/Player";
-import ToggleTheme from "./components/ToggleTheme";
+import { Suspense } from "react";
+import Loading from "./loading";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -37,8 +36,10 @@ export default function RootLayout({
                             <div className="col-start-2 col-end-12 flex flex-col p-2">
                                 {/* <ToggleTheme /> */}
                                 
-                                <div className="flex-grow">
+                                <div className="flex-grow mt-12">
+                                    <Suspense fallback={<Loading/>}>
                                     {children}
+                                    </Suspense>
                                 </div>
                                 <div className="col-start-2">
                                     {/* <Player /> */}

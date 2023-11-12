@@ -12,6 +12,7 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { getPlaybackState, transferPlayback } from "../api/lib/spotify";
 import Image from "next/image";
+import Loading from "../loading";
 const track = {
     name: "",
     album: {
@@ -112,7 +113,7 @@ export default function Player() {
         };
     }, [session?.accessToken, player]);
 
-    if (!session || !player) return <div> Loading... </div>;
+    if (!session || !player) return <Loading/>;
 
     return (
         <div className="shadow-md py-2 border-t">

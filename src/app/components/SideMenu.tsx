@@ -1,27 +1,99 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
+import { useTheme } from "next-themes";
+import { signOut, signIn } from "next-auth/react";
 
-import { DashboardIcon, DiscIcon, PersonIcon } from "@radix-ui/react-icons";
+import {
+    LayoutDashboardIcon as DashboardIcon,
+    DiscIcon,
+    User2Icon as PersonIcon,
+    MoreVerticalIcon,
+    Music2Icon,
+    PodcastIcon,
+    SearchIcon,
+} from "lucide-react";
 import { useSession } from "next-auth/react";
-import Image from "next/image";
 import Link from "next/link";
-import { MoreVerticalIcon } from "lucide-react";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+import { Moon, Sun } from "lucide-react";
+
+import ToggleTheme from "./ToggleTheme";
+import Loading from "../loading";
+
+function Settings() {
+    const { theme, setTheme } = useTheme();
+
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button
+                    className="flex justify-normal gap-2 align-baseline text-base"
+                    variant={"ghost"}
+                >
+                    <MoreVerticalIcon />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+                <DropdownMenuItem
+                    onClick={() => {
+                        signIn('spotify');
+                    }}
+                > Sign in with Spotify </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                    onClick={() => {
+                        signOut();
+                    }}
+                >
+                    {" "}
+                    Logout{" "}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setTheme(theme === "light" ? "dark" : "light");
+                        }}
+                    >
+                        {theme === "light" ? (
+                            <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                        ) : (
+                            <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                        )}
+                        <span className="sr-only">Toggle theme</span>
+                    </Button>
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    );
+}
 
 export default function SideMenu() {
     const { data: session } = useSession();
     const pathname = usePathname();
 
-    if (!session) return <div> Loading... </div>;
+    if (!session) return <Loading />;
 
     return (
-        <div className="flex flex-col h-screen shadow-lg border-r p-2">
-            <div className="flex align-baseline mb-6">
+        <div className="flex flex-col h-screen shadow-lg border-r p-4">
+            <div className="flex align-middle justify-center mb-6">
                 {" "}
-                <h2 className="font-semibold my-2 font-xl flex-grow">My Music Player</h2>{" "}
-                <Button className="" size={"icon"} variant={"ghost"}>
-                    <MoreVerticalIcon />
-                </Button>
+                <h2 className="font-semibold my-2 font-xl flex-grow">
+                    My Music Player
+                </h2>{" "}
+                <Settings />
             </div>
             <div className="side menu">
                 <div className="flex flex-col gap-2 my-2">
@@ -42,7 +114,7 @@ export default function SideMenu() {
                         asChild
                     >
                         <Link href="/browse">
-                            <DashboardIcon /> <span> Browse </span>{" "}
+                            <SearchIcon /> <span> Browse </span>{" "}
                         </Link>
                     </Button>
                 </div>
@@ -55,19 +127,7 @@ export default function SideMenu() {
                         asChild
                     >
                         <Link href="/songs">
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="h-4 w-4"
-                            >
-                                <circle cx="8" cy="18" r="4" />
-                                <path d="M12 18V2l7 4" />
-                            </svg>{" "}
+                            <Music2Icon />
                             <span> Songs </span>
                         </Link>
                     </Button>
@@ -81,31 +141,19 @@ export default function SideMenu() {
                         <PersonIcon /> <span> Artists </span>{" "}
                     </Button>
                     <Button
-                        variant="ghost"
                         className="flex justify-normal gap-2 align-baseline text-base"
+                        variant={pathname === "/albums" ? "secondary" : "ghost"}
                     >
                         {" "}
                         <DiscIcon /> <span> Albums </span>{" "}
                     </Button>
                     <Button
-                        variant="ghost"
                         className="flex justify-normal gap-2 align-baseline text-base"
+                        variant={
+                            pathname === "/podcasts" ? "secondary" : "ghost"
+                        }
                     >
-                        {" "}
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="h-4 w-4"
-                        >
-                            <path d="m12 8-9.04 9.06a2.82 2.82 0 1 0 3.98 3.98L16 12" />
-                            <circle cx="17" cy="7" r="5" />
-                        </svg>{" "}
-                        <span> Podcasts </span>{" "}
+                        <PodcastIcon /> <span> Podcasts </span>{" "}
                     </Button>
                 </div>
             </div>

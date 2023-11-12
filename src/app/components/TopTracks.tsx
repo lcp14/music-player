@@ -1,9 +1,11 @@
 "use client";
-import { Button } from "@/components/ui/button";
-import { ChevronLeftIcon, ChevronRightIcon } from "@radix-ui/react-icons";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { BaseH2 } from "./Typography";
+import { cn } from "@/lib/utils";
+import Loading from "../loading";
 
 function Carousel({ data, renderCard }: { data: any; renderCard: any }) {
     const [current, setCurrent] = useState(0);
@@ -17,7 +19,7 @@ function Carousel({ data, renderCard }: { data: any; renderCard: any }) {
     };
 
     return (
-        <div className="flex flex-row gap-2 flex-wrap align-middle items-center transition-all my-6 drop-shadow-md rounded-md">
+        <div className="flex flex-row gap-2 flex-wrap align-middle items-center justify-center transition-all my-6 shadow-inner border rounded-md p-2 h-[300px] max-h-[350px] overflow-y-hidden">
             <Button variant="ghost" onClick={prevSlide}>
                 {" "}
                 <ChevronLeftIcon />{" "}
@@ -33,33 +35,54 @@ function Carousel({ data, renderCard }: { data: any; renderCard: any }) {
     );
 }
 
-const TrackCard = ({ img, title, description }: { [key:string]:string }) => {
+const CarouselCard = ({
+    img,
+    title,
+    description,
+}: {
+    [key: string]: string;
+}) => {
     return (
-        <div className="flex flex-col flex-wrap max-w-[150px] items-center self-start m-2">
-            <div className="rounded-sm overflow-hidden flex-grow h-[150px]">
+        <div className="flex flex-col flex-wrap max-w-[200px] sm:max-w-[150px] items-center self-start m-4 group hover:shadow-md p-2 rounded-sm">
+            <div className="rounded-sm overflow-hidden flex-grow h-[200px] sm:h-[150px]">
                 <Image
                     src={img}
                     width={300}
                     height={300}
                     alt="Album cover"
+                    className="group-hover:scale-105 transition"
                 ></Image>
             </div>
-            <div className="p-2">
-                {title}
+            <div className="overflow-clip max-w-[inherit] self-start my-2">
+                <span
+                    className={cn(
+                        "text-base",
+                        buttonVariants({ variant: "link" }), "px-0 underline-offset-0"
+                    )}
+                >
+                    {" "}
+                    {title}{" "}
+                </span>
                 <br/>
-                {description}
+                {description ? <p
+                    className={cn(
+                        "text-sm h-fit",
+                        buttonVariants({ variant: "link" }), "px-0 underline-offset-0"
+                    )}
+                >
+                    {description}
+                </p> : null}
             </div>
         </div>
     );
 };
 
-export function TopArtists() {
+export function CarouselTopTracks() {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-
     useEffect(() => {
-        fetch("/api/spotify/top-artists")
+        fetch("/api/spotify/user/top-items?type=tracks")
             .then((response) => {
                 if (response.ok) {
                     return response.json();
@@ -78,32 +101,23 @@ export function TopArtists() {
     }, []);
 
     if (error) return <div>Error: {error}</div>;
-    if (loading) return <div>Loading...</div>;
+    if (loading) return <Loading/>;
+
     return (
-        <div className="m-2">
-            <BaseH2> Top Artists </BaseH2>
-            <p className="text-sm text-muted-foreground mt-6"> Listen to you favourite artist </p>
-            <Carousel
-                data={data.artists}
-                renderCard={(artist, index) => (
-                    <TrackCard key={index} img={artist.coverImage} title={artist.name} description="" >
-                        {" "}
-                    </TrackCard>
-                )}
-            >
-                {" "}
-            </Carousel>
-        </div>
+        <CarouselWrapper
+            title="Top Songs"
+            description="Listen to your favourite songs"
+            data={data.items}
+        />
     );
 }
 
-export function TopTracks() {
+export function CarouselTopArtists() {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-
     useEffect(() => {
-        fetch("/api/spotify/top-tracks")
+        fetch("/api/spotify/user/top-items?type=artists")
             .then((response) => {
                 if (response.ok) {
                     return response.json();
@@ -122,18 +136,36 @@ export function TopTracks() {
     }, []);
 
     if (error) return <div>Error: {error}</div>;
-    if (loading) return <div>Loading...</div>;
+    if (loading) return <Loading/>;
+
+    return (
+        <CarouselWrapper
+            title="Top Artists"
+            description="Listen to you favourite artist"
+            data={data.items}
+        />
+    );
+}
+
+function CarouselWrapper({ title, description, data }) {
     return (
         <div className="m-2">
-            <BaseH2>Top Tracks</BaseH2>
-            <p className="text-sm text-muted-foreground mt-6"> Listen to you favourite songs </p>
-
+            <BaseH2> {title} </BaseH2>
+            <p className="text-sm text-muted-foreground mt-6">
+                {" "}
+                {description}{" "}
+            </p>
             <Carousel
-                data={data.tracks}
-                renderCard={(track, index) => (
-                    <TrackCard key={index} img={track.coverImage} title={track.artist} description={track.title}>
+                data={data}
+                renderCard={(data, index) => (
+                    <CarouselCard
+                        key={index}
+                        img={data.img}
+                        title={data.title}
+                        description={data.description}
+                    >
                         {" "}
-                    </TrackCard>
+                    </CarouselCard>
                 )}
             >
                 {" "}
