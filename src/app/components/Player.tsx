@@ -96,7 +96,6 @@ export default function Player() {
                     if (!state) {
                         return;
                     }
-                    console.log(state);
                     setTrack(state.track_window.current_track);
                     setPaused(state.paused);
 
@@ -120,14 +119,14 @@ export default function Player() {
             {current_track.name !== "" && (
                 <div className="flex flex-col items-center justify-center gap-2 my-2">
                     <div>
-                        (
+                        
                         <Image
                             src={current_track.album.images[0].url}
                             width={120}
                             height={120}
                             alt={current_track.album.name}
                         />
-                        )
+                        
                     </div>
                     <div>
                         {" "}

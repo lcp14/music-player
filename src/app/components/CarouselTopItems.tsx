@@ -6,8 +6,9 @@ import React, { useEffect, useState } from "react";
 import { BaseH2 } from "./Typography";
 import { cn } from "@/lib/utils";
 import Loading from "../loading";
+import { AlbumObject, ArtistObject, TrackObject } from "../api/lib/spotify";
 
-function Carousel({ data, renderCard }: { data: any; renderCard: any }) {
+function Carousel({ data, renderCard }) {
     const [current, setCurrent] = useState(0);
     const slideSize = 5;
     const nextSlide = () => {
@@ -19,14 +20,23 @@ function Carousel({ data, renderCard }: { data: any; renderCard: any }) {
     };
 
     return (
-        <div className="flex flex-row gap-2 flex-wrap align-middle items-center justify-center transition-all my-6 shadow-inner border rounded-md p-2 h-[300px] max-h-[350px] overflow-y-hidden">
+        <div className="flex flex-row gap-2 flex-wrap align-middle items-center content-end transition-all my-6 shadow-inner border rounded-md p-2 h-[300px] max-h-[350px] overflow-y-hidden">
             <Button variant="ghost" onClick={prevSlide}>
                 {" "}
                 <ChevronLeftIcon />{" "}
             </Button>
             {data
                 .slice(current, current + slideSize)
-                .map((item, index) => renderCard(item, index + current))}
+                .map(
+                    (
+                        item: {
+                            title: string;
+                            description: string;
+                            img: string;
+                        },
+                        index: number
+                    ) => renderCard(item, index + current)
+                )}
             <Button variant="ghost" onClick={nextSlide}>
                 {" "}
                 <ChevronRightIcon />{" "}
@@ -39,11 +49,12 @@ const CarouselCard = ({
     img,
     title,
     description,
+    data,
 }: {
     [key: string]: string;
 }) => {
     return (
-        <div className="flex flex-col flex-wrap max-w-[200px] sm:max-w-[150px] items-center self-start m-4 group hover:shadow-md p-2 rounded-sm">
+        <div onClick={() => handleCardItem(data)} className="flex flex-col flex-wrap max-w-[200px] sm:max-w-[150px] items-center self-start m-4 group hover:shadow-sm hover:outline-1 hover:outline p-2 rounded-sm">
             <div className="rounded-sm overflow-hidden flex-grow h-[200px] sm:h-[150px]">
                 <Image
                     src={img}
@@ -57,21 +68,25 @@ const CarouselCard = ({
                 <span
                     className={cn(
                         "text-base",
-                        buttonVariants({ variant: "link" }), "px-0 underline-offset-0"
+                        buttonVariants({ variant: "link" }),
+                        "px-0 underline-offset-0"
                     )}
                 >
                     {" "}
                     {title}{" "}
                 </span>
-                <br/>
-                {description ? <p
-                    className={cn(
-                        "text-sm h-fit",
-                        buttonVariants({ variant: "link" }), "px-0 underline-offset-0"
-                    )}
-                >
-                    {description}
-                </p> : null}
+                <br />
+                {description ? (
+                    <p
+                        className={cn(
+                            "text-sm h-fit",
+                            buttonVariants({ variant: "link" }),
+                            "px-0 underline-offset-0"
+                        )}
+                    >
+                        {description}
+                    </p>
+                ) : null}
             </div>
         </div>
     );
@@ -101,7 +116,7 @@ export function CarouselTopTracks() {
     }, []);
 
     if (error) return <div>Error: {error}</div>;
-    if (loading) return <Loading/>;
+    if (loading) return <Loading />;
 
     return (
         <CarouselWrapper
@@ -136,7 +151,7 @@ export function CarouselTopArtists() {
     }, []);
 
     if (error) return <div>Error: {error}</div>;
-    if (loading) return <Loading/>;
+    if (loading) return <Loading />;
 
     return (
         <CarouselWrapper
@@ -145,6 +160,13 @@ export function CarouselTopArtists() {
             data={data.items}
         />
     );
+}
+
+function handleCardItem(item) {
+    fetch(`/api/spotify/player`, {
+        method: 'PUT',
+        body: JSON.stringify({context_uri: item.uri, position_ms: 0})
+    })
 }
 
 function CarouselWrapper({ title, description, data }) {
@@ -157,12 +179,13 @@ function CarouselWrapper({ title, description, data }) {
             </p>
             <Carousel
                 data={data}
-                renderCard={(data, index) => (
+                renderCard={(item, index) => (
                     <CarouselCard
                         key={index}
-                        img={data.img}
-                        title={data.title}
-                        description={data.description}
+                        data={item}
+                        img={item.img}
+                        title={item.title}
+                        description={item.description}
                     >
                         {" "}
                     </CarouselCard>

@@ -1,5 +1,5 @@
 import { Separator } from "@/components/ui/separator";
-import { CarouselTopArtists, CarouselTopTracks } from "./components/TopTracks";
+import { CarouselTopArtists, CarouselTopTracks } from "./components/CarouselTopItems";
 export default function Home() {
     return (
         <>

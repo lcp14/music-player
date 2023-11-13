@@ -6,6 +6,7 @@ import "./globals.css";
 import SideMenu from "./components/SideMenu";
 import { Suspense } from "react";
 import Loading from "./loading";
+import Player from "./components/Player";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,7 +22,7 @@ export default function RootLayout({
 }) {
     return (
         <html lang="en" suppressHydrationWarning>
-            <body className={inter.className}>
+            <body className={`${inter.className} overflow-hidden`}>
                 <NextAuthProvider>
                     <ThemeProvider
                         attribute="class"
@@ -35,14 +36,14 @@ export default function RootLayout({
                             </div>
                             <div className="col-start-2 col-end-12 flex flex-col p-2">
                                 {/* <ToggleTheme /> */}
-                                
-                                <div className="flex-grow mt-12">
-                                    <Suspense fallback={<Loading/>}>
-                                    {children}
+
+                                <div className="flex-grow">
+                                    <Suspense fallback={<Loading />}>
+                                        {children}
                                     </Suspense>
                                 </div>
                                 <div className="col-start-2">
-                                    {/* <Player /> */}
+                                    <Player />
                                 </div>
                             </div>
                         </div>
