@@ -39,7 +39,7 @@ function Settings() {
                     className="flex justify-normal gap-2 align-baseline text-base"
                     variant={"ghost"}
                 >
-                    <MoreVerticalIcon />
+                    <MoreVerticalIcon size={18} />
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
@@ -105,7 +105,7 @@ export default function SideMenu() {
                     >
                         <Link href="/">
                             {" "}
-                            <DashboardIcon /> <span> For you </span>
+                            <DashboardIcon size={16}/> <span> For you </span>
                         </Link>
                     </Button>
                     <Button
@@ -114,7 +114,7 @@ export default function SideMenu() {
                         asChild
                     >
                         <Link href="/browse">
-                            <SearchIcon /> <span> Browse </span>{" "}
+                            <SearchIcon size={16}/> <span> Browse </span>{" "}
                         </Link>
                     </Button>
                 </div>
@@ -127,7 +127,7 @@ export default function SideMenu() {
                         asChild
                     >
                         <Link href="/songs">
-                            <Music2Icon />
+                            <Music2Icon size={16}/>
                             <span> Songs </span>
                         </Link>
                     </Button>
@@ -138,14 +138,14 @@ export default function SideMenu() {
                         className="flex justify-normal gap-2 align-baseline text-base"
                     >
                         {" "}
-                        <PersonIcon /> <span> Artists </span>{" "}
+                        <PersonIcon size={16}/> <span> Artists </span>{" "}
                     </Button>
                     <Button
                         className="flex justify-normal gap-2 align-baseline text-base"
                         variant={pathname === "/albums" ? "secondary" : "ghost"}
                     >
                         {" "}
-                        <DiscIcon /> <span> Albums </span>{" "}
+                        <DiscIcon size={16}/> <span> Albums </span>{" "}
                     </Button>
                     <Button
                         className="flex justify-normal gap-2 align-baseline text-base"
@@ -153,7 +153,7 @@ export default function SideMenu() {
                             pathname === "/podcasts" ? "secondary" : "ghost"
                         }
                     >
-                        <PodcastIcon /> <span> Podcasts </span>{" "}
+                        <PodcastIcon size={16}/> <span> Podcasts </span>{" "}
                     </Button>
                 </div>
             </div>

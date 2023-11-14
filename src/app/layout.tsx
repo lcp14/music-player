@@ -7,6 +7,8 @@ import SideMenu from "./components/SideMenu";
 import { Suspense } from "react";
 import Loading from "./loading";
 import Player from "./components/Player";
+import { SpotifyProvider } from "./context/SpotifyProvider";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -30,23 +32,24 @@ export default function RootLayout({
                         enableSystem
                         disableTransitionOnChange
                     >
-                        <div className="grid-container grid grid-cols-6">
-                            <div className="col-start-1 col-span-1 col-end-2">
-                                <SideMenu />
-                            </div>
-                            <div className="col-start-2 col-end-12 flex flex-col p-2">
-                                {/* <ToggleTheme /> */}
-
-                                <div className="flex-grow">
-                                    <Suspense fallback={<Loading />}>
-                                        {children}
-                                    </Suspense>
+                        <SpotifyProvider>
+                            <div className="grid-container grid grid-cols-6">
+                                <div className="col-start-1 col-span-1 col-end-2">
+                                    <SideMenu />
                                 </div>
-                                <div className="col-start-2">
-                                    <Player />
+                                <div className="col-start-2 col-end-12 flex flex-col py-2">
+                                    {/* <ToggleTheme /> */}
+                                    <ScrollArea className="flex-grow h-[200px]" >
+                                        <Suspense fallback={<Loading />}>
+                                            {children}
+                                        </Suspense>
+                                    </ScrollArea>
+                                    <div className="col-start-2">
+                                        <Player />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        </SpotifyProvider>
                     </ThemeProvider>
                 </NextAuthProvider>
             </body>

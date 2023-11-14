@@ -3,7 +3,7 @@ import { authOptions } from "../../lib/auth";
 import { startPlayback } from "../../lib/spotify";
 import { NextRequest } from "next/server";
 
-export async function handler(request: NextRequest) {
+async function handler(request: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session) {
       return new Response("Unauthorized", { status: 401 });

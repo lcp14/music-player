@@ -3,7 +3,6 @@ import { CarouselTopArtists, CarouselTopTracks } from "./components/CarouselTopI
 export default function Home() {
     return (
         <>
-            <Separator />
             <div className="flex align-middle justify-center">
                 <CarouselTopTracks/>
             </div>
