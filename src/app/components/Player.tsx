@@ -21,11 +21,11 @@ export default function Player() {
     }
 
     async function togglePlay() {
-        const response = await getPlaybackState(session.accessToken);
+        const response = await getPlaybackState(session?.accessToken);
         if (response.status === 204) {
             console.info("No active device found, transfering playback");
             const res = await transferPlayback(
-                session.accessToken,
+                session?.accessToken,
                 currentDevice
             );
             if (res.status === 202) {

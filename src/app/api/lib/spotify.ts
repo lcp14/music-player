@@ -20,7 +20,7 @@ export type TrackObject = {
     popularity: number;
     preview_url: string | null;
     track_number: number;
-    type: ItemType.Tracks;
+    type: "track";
     uri: string;
 };
 
@@ -50,19 +50,19 @@ export type ArtistObject = {
     images: Array<ImageObject>;
     name: string;
     popularity: number;
-    type: ItemType.Artists;
+    type: "artist";
     url: string;
     uri: string;
 };
 
 
-export enum ItemType {
+export enum ItemResponseType {
     Artists = "artists",
     Tracks = "tracks",
 }
 
-export const isItemType = (value: string): value is ItemType => {
-    return value === ItemType.Artists || value === ItemType.Tracks;
+export const isItemType = (value: string): value is ItemResponseType => {
+    return value === ItemResponseType.Artists || value === ItemResponseType.Tracks;
 };
 
 
@@ -97,7 +97,7 @@ export const userTopItems = async ({
     time_range,
 }: {
     accessToken: string;
-    type: ItemType;
+    type: ItemResponseType;
     time_range: TimeRange;
 }) => {
     return fetch(
@@ -132,7 +132,10 @@ export const startPlayback = async (
     );
 };
 
-export const getPlaybackState = async (accessToken: string) => {
+export const getPlaybackState = async (accessToken: string | undefined) => {
+    if (!accessToken) {
+        throw new Error("No access token provided");
+    } 
     return fetch("https://api.spotify.com/v1/me/player", {
         headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -141,9 +144,12 @@ export const getPlaybackState = async (accessToken: string) => {
 };
 
 export const transferPlayback = async (
-    accessToken: string,
+    accessToken: string | undefined,
     device_id: string
 ) => {
+    if (!accessToken) {
+        throw new Error("No access token provided");
+    } 
     return fetch("https://api.spotify.com/v1/me/player", {
         method: "PUT",
         headers: {

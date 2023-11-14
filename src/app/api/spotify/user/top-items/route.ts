@@ -4,7 +4,7 @@ import {
     type TrackObject,
     UserTopItemsResponse,
     userTopItems,
-    ItemType,
+    ItemResponseType,
     TimeRange,
     isItemType,
     isTimeRange,
@@ -36,7 +36,7 @@ async function GET(request: NextRequestWithAuth) {
         return new Response("Unauthorized", { status: 401 });
     }
     const time_range = request.nextUrl.searchParams.get("time_range") ?? TimeRange.ShortTerm; 
-    const type = request.nextUrl.searchParams.get("type") ?? ItemType.Tracks;
+    const type = request.nextUrl.searchParams.get("type") ?? ItemResponseType.Tracks;
 
     if(!isItemType(type) || !isTimeRange(time_range)) { 
         return new Response("Bad Request", { status: 400 });

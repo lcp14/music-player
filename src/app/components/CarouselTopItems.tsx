@@ -2,13 +2,19 @@
 import { Button, buttonVariants } from "@/components/ui/button";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, ReactNode } from "react";
 import { BaseH2 } from "./Typography";
 import { cn } from "@/lib/utils";
 import Loading from "../loading";
-import { AlbumObject, ArtistObject, TrackObject } from "../api/lib/spotify";
 
-function Carousel({ data, renderCard }) {
+function Carousel({
+    data,
+    renderCard,
+}: {
+    data: Array<CarouselCardType>;
+    renderCard: any;
+    children?: ReactNode;
+}) {
     const [current, setCurrent] = useState(0);
     const slideSize = 5;
     const nextSlide = () => {
@@ -27,15 +33,8 @@ function Carousel({ data, renderCard }) {
             </Button>
             {data
                 .slice(current, current + slideSize)
-                .map(
-                    (
-                        item: {
-                            title: string;
-                            description: string;
-                            img: string;
-                        },
-                        index: number
-                    ) => renderCard(item, index + current)
+                .map((item: CarouselCardType, index: number) =>
+                    renderCard(item, index + current)
                 )}
             <Button variant="ghost" onClick={nextSlide}>
                 {" "}
@@ -45,16 +44,19 @@ function Carousel({ data, renderCard }) {
     );
 }
 
-const CarouselCard = ({
-    img,
-    title,
-    description,
-    data,
-}: {
-    [key: string]: string;
-}) => {
+type CarouselCardProps = {
+    img: string;
+    title: string;
+    description: string;
+    data: any;
+    children?: ReactNode;
+};
+const CarouselCard = ({ img, title, description, data }: CarouselCardProps) => {
     return (
-        <div onClick={() => handleCardItem(data)} className="flex flex-col flex-wrap max-w-[200px] sm:max-w-[150px] items-center self-start m-4 group hover:shadow-sm hover:outline-1 hover:outline p-2 rounded-sm">
+        <div
+            onClick={() => handleCardItem(data)}
+            className="flex flex-col flex-wrap max-w-[200px] sm:max-w-[150px] items-center self-start m-4 group hover:shadow-sm hover:outline-1 hover:outline p-2 rounded-sm"
+        >
             <div className="rounded-sm overflow-hidden flex-grow h-[200px] sm:h-[150px]">
                 <Image
                     src={img}
@@ -92,8 +94,58 @@ const CarouselCard = ({
     );
 };
 
+function handleCardItem(item: CarouselCardType) {
+    fetch(`/api/spotify/player`, {
+        method: "PUT",
+        body: JSON.stringify({ context_uri: item.uri, position_ms: 0 }),
+    });
+}
+
+type CarouselCardType = {
+    img: string;
+    title: string;
+    description: string;
+    uri: string;
+};
+
+type CarouselWrapperProps = {
+    title: string;
+    description: string;
+    data: Array<CarouselCardType>;
+};
+function CarouselWrapper({ title, description, data }: CarouselWrapperProps) {
+    return (
+        <div className="m-2">
+            <BaseH2> {title} </BaseH2>
+            <p className="text-sm text-muted-foreground mt-6">
+                {" "}
+                {description}{" "}
+            </p>
+            <Carousel
+                data={data}
+                renderCard={(
+                    item: { img: string; title: string; description: string },
+                    index: number
+                ) => (
+                    <CarouselCard
+                        key={index}
+                        data={item}
+                        img={item.img}
+                        title={item.title}
+                        description={item.description}
+                    >
+                        {" "}
+                    </CarouselCard>
+                )}
+            >
+                {" "}
+            </Carousel>
+        </div>
+    );
+}
+
 export function CarouselTopTracks() {
-    const [data, setData] = useState(null);
+    const [data, setData] = useState<{items: CarouselCardType[]}>({items: []});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     useEffect(() => {
@@ -122,13 +174,13 @@ export function CarouselTopTracks() {
         <CarouselWrapper
             title="Top Songs"
             description="Listen to your favourite songs"
-            data={data.items}
+            data={data?.items}
         />
     );
 }
 
 export function CarouselTopArtists() {
-    const [data, setData] = useState(null);
+    const [data, setData] = useState<{items: CarouselCardType[]}>({items: []});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     useEffect(() => {
@@ -157,42 +209,7 @@ export function CarouselTopArtists() {
         <CarouselWrapper
             title="Top Artists"
             description="Listen to you favourite artist"
-            data={data.items}
+            data={data?.items}
         />
-    );
-}
-
-function handleCardItem(item) {
-    fetch(`/api/spotify/player`, {
-        method: 'PUT',
-        body: JSON.stringify({context_uri: item.uri, position_ms: 0})
-    })
-}
-
-function CarouselWrapper({ title, description, data }) {
-    return (
-        <div className="m-2">
-            <BaseH2> {title} </BaseH2>
-            <p className="text-sm text-muted-foreground mt-6">
-                {" "}
-                {description}{" "}
-            </p>
-            <Carousel
-                data={data}
-                renderCard={(item, index) => (
-                    <CarouselCard
-                        key={index}
-                        data={item}
-                        img={item.img}
-                        title={item.title}
-                        description={item.description}
-                    >
-                        {" "}
-                    </CarouselCard>
-                )}
-            >
-                {" "}
-            </Carousel>
-        </div>
     );
 }
