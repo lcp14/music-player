@@ -14,7 +14,7 @@ async function refreshAccessToken(token: TokenSet) {
                 grant_type: "refresh_token",
                 refresh_token: token.refreshToken,
                 client_id: process.env.SPOTIFY_CLIENT_ID,
-            }),
+            } as any),
         };
 
         const response = await fetch(url, payload);
