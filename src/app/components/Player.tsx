@@ -34,7 +34,7 @@ export default function Player() {
             console.error("Error: Transfering playback failed");
             return;
         }
-        await player.togglePlay();
+        await player?.togglePlay();
     }
 
     return (
@@ -60,7 +60,7 @@ export default function Player() {
                     size="icon"
                     variant="ghost"
                     onClick={() => {
-                        player.previousTrack();
+                        player?.previousTrack();
                     }}
                 >
                     <SkipBackIcon size={16}></SkipBackIcon>
@@ -78,7 +78,7 @@ export default function Player() {
                     size="icon"
                     variant="ghost"
                     onClick={() => {
-                        player.nextTrack();
+                        player?.nextTrack();
                     }}
                 >
                     <SkipForwardIcon size={16}></SkipForwardIcon>
