@@ -59,12 +59,12 @@ export const authOptions: NextAuthOptions = {
     ],
 
     callbacks: {
-        async jwt({ token, account, user }) {
+        async jwt({ token, account, user } : { token: any, account: any, user: any }) {
             // Initial sign in
             if (account && user) {
                 return {
                     accessToken: account.access_token,
-                    accessTokenExpires: Date.now() + (account.expires_at) * 1000,
+                    accessTokenExpires: Date.now() + (account.expires_at ?? 60) * 1000,
                     refreshToken: account.refresh_token,
                     user: user,
                 };
@@ -76,7 +76,7 @@ export const authOptions: NextAuthOptions = {
             // Access token has expired, try to update it
             return refreshAccessToken(token);
         },
-        async session({ session, user, token }) {
+        async session({ session, user, token }: { session: Session, user: any, token: any }) {
             if (token) {
                 session.accessToken = token.accessToken;
                 session.refreshToken = token.refreshToken;
