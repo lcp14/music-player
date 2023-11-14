@@ -13,7 +13,6 @@ import {
     PodcastIcon,
     SearchIcon,
 } from "lucide-react";
-import { useSession } from "next-auth/react";
 import Link from "next/link";
 import {
     DropdownMenu,
@@ -26,8 +25,6 @@ import {
 
 import { Moon, Sun } from "lucide-react";
 
-import ToggleTheme from "./ToggleTheme";
-import Loading from "../loading";
 
 function Settings() {
     const { theme, setTheme } = useTheme();
@@ -81,11 +78,6 @@ function Settings() {
 }
 
 export default function SideMenu() {
-    const { data: session } = useSession();
-    const pathname = usePathname();
-
-    if (!session) return <Loading />;
-
     return (
         <div className="flex flex-col h-screen shadow-lg border-r p-4">
             <div className="flex align-middle justify-center mb-6">
