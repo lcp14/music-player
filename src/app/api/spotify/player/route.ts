@@ -14,10 +14,11 @@ async function handler(request: NextRequest) {
 
   const response = await startPlayback(session.accessToken, device_id, body);
 
-  if(response.status === 204) {
+  if(response.status === 204 || response.status === 202) {
       return new Response("Success", { status: 200 });
   }
 
+  console.info(response.status);
   return new Response("Bad Request", { status: 400 });
 }
 

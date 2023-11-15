@@ -83,7 +83,6 @@ export function usePlayerHook(): PlayerState {
 
     useEffect(() => {
         if (!session?.accessToken) return;
-        if (player) return;
         if (is_loaded) return;
         /* Append Spotify SDK  */
         const script = document.createElement("script");
@@ -107,7 +106,7 @@ export function usePlayerHook(): PlayerState {
         return () => {
             document.body.removeChild(script);
         };
-    }, [session?.accessToken, player, is_loaded]);
+    }, [session?.accessToken, is_loaded]);
 
     if (player) {
         player.addListener("ready", ({ device_id }: { device_id: string }) => {

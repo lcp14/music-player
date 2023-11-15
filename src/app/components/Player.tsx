@@ -12,30 +12,48 @@ import Image from "next/image";
 import Loading from "../loading";
 import { usePlayer } from "../context/SpotifyProvider";
 
+
+export async function isPlaybackStateActive(accessToken: string) {
+    const response = await getPlaybackState(accessToken);
+    if (response.status === 204) {
+        return false;
+    }
+    return true;
+}
+
+export async function playerTransferPlayback(accessToken: string, currentDevice: string) {
+    console.info("No active device found, transfering playback");
+    const res = await transferPlayback(
+        accessToken,
+        currentDevice
+    );
+    if (res.status === 202) {
+        return;
+    }
+    console.error("Error: Transfering playback failed");
+    return;
+}
+
+export async function togglePlay(accessToken: string, player: Spotify.SpotifyPlayer, currentDevice: string) {
+    if(await isPlaybackStateActive(accessToken)) { 
+        await player?.togglePlay();
+        return;
+    }
+    await playerTransferPlayback(accessToken, currentDevice);
+}
+
 export default function Player() {
     const { data: session } = useSession();
     const { player, currentDevice, currentTrack, isPaused, isActive } = usePlayer();
 
+    if(!player) {
+        return <Loading></Loading>;
+    }
     if (!session) {
         return <Loading></Loading>;
     }
 
-    async function togglePlay() {
-        const response = await getPlaybackState(session?.accessToken);
-        if (response.status === 204) {
-            console.info("No active device found, transfering playback");
-            const res = await transferPlayback(
-                session?.accessToken,
-                currentDevice
-            );
-            if (res.status === 202) {
-                return;
-            }
-            console.error("Error: Transfering playback failed");
-            return;
-        }
-        await player?.togglePlay();
-    }
+    const accesToken = session?.accessToken;
 
     return (
         <div className="shadow-lg py-2 border-t rounded-sm">
@@ -67,9 +85,9 @@ export default function Player() {
                 </Button>
                 <Button
                     size="icon"
-                    className="rounded-full"
+                    className="rounded-full transition"
                     onClick={async () => {
-                        await togglePlay();
+                        await togglePlay(accesToken, player, currentDevice);
                     }}
                 >
                     {!isPaused && isActive ? <PauseIcon size={16}/> : <PlayIcon size={16}></PlayIcon>}{" "}

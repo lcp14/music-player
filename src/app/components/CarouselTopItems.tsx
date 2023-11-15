@@ -6,6 +6,10 @@ import React, { useEffect, useState, ReactNode } from "react";
 import { BaseH2 } from "./Typography";
 import { cn } from "@/lib/utils";
 import Loading from "../loading";
+import { ItemResponseType, getPlaybackState } from "../api/lib/spotify";
+import { useSession } from "next-auth/react";
+import { isPlaybackStateActive, playerTransferPlayback } from "./Player";
+import { usePlayer } from "../context/SpotifyProvider";
 
 function Carousel({
     data,
@@ -26,19 +30,23 @@ function Carousel({
     };
 
     return (
-        <div className="flex flex-row gap-2 flex-wrap align-middle items-center content-end transition-all my-6 shadow-inner border rounded-md p-2 h-[300px] max-h-[350px] overflow-y-hidden">
+        <div className="flex flex-row gap-2 flex-wrap align-middle items-center content-center transition-all my-6 shadow-inner border rounded-md p-2 h-[300px] max-h-[350px] overflow-y-hidden">
             <Button variant="ghost" onClick={prevSlide}>
-                {" "}
-                <ChevronLeftIcon />{" "}
+                <ChevronLeftIcon />
             </Button>
-            {data
-                .slice(current, current + slideSize)
-                .map((item: CarouselCardType, index: number) =>
-                    renderCard(item, index + current)
-                )}
+            <div className="flex flex-row flex-grow gap-2 flex-wrap align-middle justify-center items-center content-center transition-all">
+                {data.length !== 0 ?
+                data
+                    .slice(current, current + slideSize)
+                    .map((item: CarouselCardType, index: number) =>
+                        renderCard(item, index + current)
+                    )
+                    :
+                    <Loading></Loading>
+                }
+            </div>
             <Button variant="ghost" onClick={nextSlide}>
-                {" "}
-                <ChevronRightIcon />{" "}
+                <ChevronRightIcon />
             </Button>
         </div>
     );
@@ -52,12 +60,20 @@ type CarouselCardProps = {
     children?: ReactNode;
 };
 const CarouselCard = ({ img, title, description, data }: CarouselCardProps) => {
+    const { data: session } = useSession();
+    const { currentDevice } = usePlayer();
+
+    if (!session) {
+        return <Loading></Loading>;
+    }
+
+    const accessToken = session?.accessToken;
     return (
         <div
-            onClick={() => handleCardItem(data)}
-            className="flex flex-col flex-wrap max-w-[200px] sm:max-w-[150px] items-center self-start m-4 group hover:shadow-sm hover:outline-1 hover:outline p-2 rounded-sm"
+            onClick={() => handleCardItem({accessToken, currentDevice}, data)}
+            className="flex flex-col flex-wrap max-w-[250px] sm:max-w-[150px] items-center self-start m-4 group hover:shadow-sm hover:outline-1 hover:outline p-2 rounded-sm"
         >
-            <div className="rounded-sm overflow-hidden flex-grow h-[200px] sm:h-[150px]">
+            <div className="rounded-sm overflow-hidden flex-grow h-[250px] sm:h-[150px]">
                 <Image
                     src={img}
                     width={300}
@@ -94,11 +110,26 @@ const CarouselCard = ({ img, title, description, data }: CarouselCardProps) => {
     );
 };
 
-function handleCardItem(item: CarouselCardType) {
-    fetch(`/api/spotify/player`, {
+let timeoutId: NodeJS.Timeout | null = null;
+
+function handleCardItem({ accessToken, currentDevice }: { [key:string]: string }, item: CarouselCardType) {
+    console.log(currentDevice)
+    const playCard = fetch(`/api/spotify/player?device_id=${currentDevice}`, {
         method: "PUT",
         body: JSON.stringify({ context_uri: item.uri, position_ms: 0 }),
     });
+    isPlaybackStateActive(accessToken).then(async (state) => {
+        if (state) {
+            await playCard;
+            return;
+        }
+        await playerTransferPlayback(accessToken, currentDevice);
+        if (timeoutId) clearTimeout(timeoutId);
+        timeoutId = setTimeout(async () => {
+            await playCard;
+        }, 1000)
+    })
+
 }
 
 type CarouselCardType = {
@@ -111,105 +142,86 @@ type CarouselCardType = {
 type CarouselWrapperProps = {
     title: string;
     description: string;
-    data: Array<CarouselCardType>;
+    type: ItemResponseType;
 };
-function CarouselWrapper({ title, description, data }: CarouselWrapperProps) {
+function CarouselWrapper({ title, description, type }: CarouselWrapperProps) {
+    const [data, setData] = useState<{ items: CarouselCardType[] }>({
+        items: [],
+    });
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        const url = `/api/spotify/user/top-items?type=${type}`;
+
+        fetch(url)
+            .then((response) => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error("Error fetching top tracks");
+                }
+            })
+            .then((data) => {
+                setData(data);
+                setLoading(false);
+            })
+            .catch((error) => {
+                setError(error.message);
+                setLoading(false);
+            });
+    }, [type]);
+
+    if (error) console.error("Error: ", error);
+    if (loading) return <Loading />;
     return (
-        <div className="m-2">
+        <div className="m-2 w-full">
             <BaseH2> {title} </BaseH2>
             <p className="text-sm text-muted-foreground mt-6">
                 {" "}
                 {description}{" "}
             </p>
-            <Carousel
-                data={data}
-                renderCard={(
-                    item: { img: string; title: string; description: string },
-                    index: number
-                ) => (
-                    <CarouselCard
-                        key={index}
-                        data={item}
-                        img={item.img}
-                        title={item.title}
-                        description={item.description}
-                    >
-                        {" "}
-                    </CarouselCard>
-                )}
-            >
-                {" "}
-            </Carousel>
+                <Carousel
+                    data={data.items}
+                    renderCard={(
+                        item: {
+                            img: string;
+                            title: string;
+                            description: string;
+                        },
+                        index: number
+                    ) => (
+                        <CarouselCard
+                            key={index}
+                            data={item}
+                            img={item.img}
+                            title={item.title}
+                            description={item.description}
+                        >
+                            {" "}
+                        </CarouselCard>
+                    )}
+                ></Carousel>
         </div>
     );
 }
 
 export function CarouselTopTracks() {
-    const [data, setData] = useState<{items: CarouselCardType[]}>({items: []});
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    useEffect(() => {
-        fetch("/api/spotify/user/top-items?type=tracks")
-            .then((response) => {
-                if (response.ok) {
-                    return response.json();
-                } else {
-                    throw new Error("Error fetching top tracks");
-                }
-            })
-            .then((data) => {
-                setData(data);
-                setLoading(false);
-            })
-            .catch((error) => {
-                setError(error.message);
-                setLoading(false);
-            });
-    }, []);
-
-    if (error) return <div>Error: {error}</div>;
-    if (loading) return <Loading />;
-
     return (
         <CarouselWrapper
             title="Top Songs"
             description="Listen to your favourite songs"
-            data={data?.items}
+            type={ItemResponseType.Tracks}
         />
     );
 }
 
 export function CarouselTopArtists() {
-    const [data, setData] = useState<{items: CarouselCardType[]}>({items: []});
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    useEffect(() => {
-        fetch("/api/spotify/user/top-items?type=artists")
-            .then((response) => {
-                if (response.ok) {
-                    return response.json();
-                } else {
-                    throw new Error("Error fetching top tracks");
-                }
-            })
-            .then((data) => {
-                setData(data);
-                setLoading(false);
-            })
-            .catch((error) => {
-                setError(error.message);
-                setLoading(false);
-            });
-    }, []);
-
-    if (error) return <div>Error: {error}</div>;
-    if (loading) return <Loading />;
-
     return (
         <CarouselWrapper
             title="Top Artists"
             description="Listen to you favourite artist"
-            data={data?.items}
+            type={ItemResponseType.Artists}
         />
     );
 }
